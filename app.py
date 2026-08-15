@@ -44,3 +44,16 @@ if resume:
         resume_text,
         height=400
     )
+
+    st.divider()
+
+    st.header("💼 Job Description")
+
+    job_description = st.text_area(
+        "Paste the job description here (optional)",
+        placeholder="Paste the job description of the role you are applying for...",
+        height=250
+    )
+
+    if job_description:
+        st.success("Job description added")
