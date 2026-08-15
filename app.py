@@ -57,3 +57,18 @@ if resume:
 
     if job_description:
         st.success("Job description added")
+
+    st.divider()
+
+    st.header("🎯 Interview Type")
+
+    interview_type = st.selectbox(
+        "What type of interview do you want to practice?",
+        [
+            "Technical",
+            "Behavioral",
+            "Mixed"
+        ]
+    )
+
+    st.write(f"Selected interview type: **{interview_type}**")
