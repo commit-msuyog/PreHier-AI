@@ -1,4 +1,5 @@
 import streamlit as st
+from pypdf import PdfReader
 
 st.set_page_config(
     page_title="PreHier",
@@ -26,3 +27,20 @@ resume = st.file_uploader(
 
 if resume:
     st.success(f"Resume uploaded: {resume.name}")
+    reader = PdfReader(resume)
+
+    resume_text = ""
+
+    for page in reader.pages:
+        text = page.extract_text()
+
+        if text:
+            resume_text += text + "\n"
+
+    st.subheader("📃 Extracted Resume Text")
+
+    st.text_area(
+        "Resume content",
+        resume_text,
+        height=400
+    )
