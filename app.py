@@ -72,3 +72,10 @@ if resume:
     )
 
     st.write(f"Selected interview type: **{interview_type}**")
+
+
+    from groq_helper import ask_groq
+
+    if st.button("Test AI"):
+        response = ask_groq("Say hello")
+        st.write(response)
