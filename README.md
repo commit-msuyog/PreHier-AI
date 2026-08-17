@@ -1,11 +1,7 @@
-# PreHier
+PreHier
 
-I am building **PreHier** to help people prepare for job interviews.
+I am building PreHier to help companies find and shortlist candidates faster.
 
-The idea is simple. A person uploads their **resume**, adds the **job description**, and selects the **type of interview** they want to practice.
+A company provides the job description and uploads candidate resumes. PreHier analyzes the requirements and resumes to help the company identify suitable candidates.
 
-PreHier uses this information to create an interview based on the person's resume and the job they are applying for.
-
-The interview can ask different questions based on the person's answers and give feedback after the interview.
-
-**Resume + Job Description + Interview Type → Personalized Interview → Feedback**
+Shortlisted candidates can then be invited to an AI-powered interview.
