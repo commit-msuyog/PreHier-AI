@@ -1,5 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
+from groq_helper import ask_groq
 
 st.set_page_config(
     page_title="PreHier",
@@ -7,35 +8,44 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🎯 PreHier")
-st.subheader("AI-Powered Interview Preparation")
+st.title("PreHier")
+st.subheader("AI-Powered Pre-Hire Screening")
 
 st.write(
-    "Prepare for your job interview using your resume, "
-    "job description, and preferred interview type."
+    "Screen and shortlist candidates based on your job requirements."
 )
 
 st.divider()
 
-st.header("📄 Upload Your Resume")
-
-resume = st.file_uploader(
-    "Upload your resume",
+resumes = st.file_uploader(
+    "Upload Candidate Resumes",
     type=["pdf"],
-    help="Upload your resume in PDF format."
+    accept_multiple_files=True,
+    help="Upload resumes of candidates in PDF format."
 )
 
-if resume:
-    st.success(f"Resume uploaded: {resume.name}")
-    reader = PdfReader(resume)
+if resumes:
 
-    resume_text = ""
+    st.success(f"{len(resumes)} candidate resume(s) uploaded")
 
-    for page in reader.pages:
-        text = page.extract_text()
+    for resume in resumes:
 
-        if text:
-            resume_text += text + "\n"
+        reader = PdfReader(resume)
+        resume_text = ""
+
+        for page in reader.pages:
+            text = page.extract_text()
+
+            if text:
+                resume_text += text + "\n"
+
+        with st.expander(resume.name):
+            st.text_area(
+                "Extracted Resume Text",
+                resume_text,
+                height=250,
+                key=resume.name
+            )
 
     st.subheader("📃 Extracted Resume Text")
 
@@ -59,23 +69,3 @@ if resume:
         st.success("Job description added")
 
     st.divider()
-
-    st.header("🎯 Interview Type")
-
-    interview_type = st.selectbox(
-        "What type of interview do you want to practice?",
-        [
-            "Technical",
-            "Behavioral",
-            "Mixed"
-        ]
-    )
-
-    st.write(f"Selected interview type: **{interview_type}**")
-
-
-    from groq_helper import ask_groq
-
-    if st.button("Test AI"):
-        response = ask_groq("Say hello")
-        st.write(response)
