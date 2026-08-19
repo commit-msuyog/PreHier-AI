@@ -2,6 +2,7 @@ import streamlit as st
 from pypdf import PdfReader
 from groq_helper import ask_groq
 from job_analyzer import analyze_job_description
+from candidate_analyzer import analyze_candidate
 
 st.set_page_config(
     page_title="PreHier",
@@ -47,6 +48,18 @@ if resumes:
                 height=250,
                 key=resume.name
             )
+        if st.button(
+            f"Analyze {resume.name}",
+            key=f"analyze_{resume.name}"
+        ):
+        
+            with st.spinner(f"Analyzing {resume.name}..."):
+            
+                candidate_profile = analyze_candidate(resume_text)
+        
+            st.subheader("👤 Candidate Profile")
+        
+            st.json(candidate_profile)
 
     st.subheader("📃 Extracted Resume Text")
 
