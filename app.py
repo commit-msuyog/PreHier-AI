@@ -1,6 +1,7 @@
 import streamlit as st
 from pypdf import PdfReader
 from groq_helper import ask_groq
+from job_analyzer import analyze_job_description
 
 st.set_page_config(
     page_title="PreHier",
@@ -69,3 +70,15 @@ if resumes:
         st.success("Job description added")
 
     st.divider()
+
+    if job_description:
+
+        if st.button("Analyze Job Description"):
+        
+            with st.spinner("Analyzing job description..."):
+            
+                job_profile = analyze_job_description(job_description)
+    
+            st.subheader("💼 Job Profile")
+    
+            st.json(job_profile)
