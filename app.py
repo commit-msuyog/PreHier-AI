@@ -1,8 +1,14 @@
 import streamlit as st
 from pypdf import PdfReader
-from groq_helper import ask_groq
+
 from job_analyzer import analyze_job_description
 from candidate_analyzer import analyze_candidate
+from matching_engine import calculate_skill_match
+
+
+# -----------------------------
+# Page Configuration
+# -----------------------------
 
 st.set_page_config(
     page_title="PreHier",
@@ -10,7 +16,12 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("PreHier")
+
+# -----------------------------
+# Header
+# -----------------------------
+
+st.title("🎯 PreHier")
 st.subheader("AI-Powered Pre-Hire Screening")
 
 st.write(
@@ -19,79 +30,150 @@ st.write(
 
 st.divider()
 
+
+# -----------------------------
+# Job Description
+# -----------------------------
+
+st.header("💼 Job Description")
+
+job_description = st.text_area(
+    "Paste the job description here",
+    placeholder="Paste the job description of the role you are hiring for...",
+    height=250
+)
+
+
+# -----------------------------
+# Analyze Job Description
+# -----------------------------
+
+job_profile = None
+
+if job_description:
+
+    if st.button("Analyze Job Description"):
+
+        with st.spinner("Analyzing job description..."):
+
+            job_profile = analyze_job_description(job_description)
+
+        st.subheader("💼 Job Profile")
+
+        st.json(job_profile)
+
+
+st.divider()
+
+
+# -----------------------------
+# Candidate Resumes
+# -----------------------------
+
+st.header("📄 Candidate Resumes")
+
 resumes = st.file_uploader(
-    "Upload Candidate Resumes",
+    "Upload candidate resumes",
     type=["pdf"],
     accept_multiple_files=True,
-    help="Upload resumes of candidates in PDF format."
+    help="Upload one or more candidate resumes in PDF format."
 )
+
+
+# -----------------------------
+# Analyze Candidates
+# -----------------------------
 
 if resumes:
 
-    st.success(f"{len(resumes)} candidate resume(s) uploaded")
+    st.success(
+        f"{len(resumes)} candidate resume(s) uploaded."
+    )
 
     for resume in resumes:
 
+        st.divider()
+
+        st.subheader(f"📄 {resume.name}")
+
+        # Extract resume text
         reader = PdfReader(resume)
+
         resume_text = ""
 
         for page in reader.pages:
+
             text = page.extract_text()
 
             if text:
                 resume_text += text + "\n"
 
-        with st.expander(resume.name):
+
+        # Show extracted text
+        with st.expander("View Extracted Resume Text"):
+
             st.text_area(
-                "Extracted Resume Text",
+                "Resume Content",
                 resume_text,
                 height=250,
-                key=resume.name
+                key=f"text_{resume.name}"
             )
+
+
+        # Analyze candidate
         if st.button(
             f"Analyze {resume.name}",
             key=f"analyze_{resume.name}"
         ):
-        
-            with st.spinner(f"Analyzing {resume.name}..."):
-            
-                candidate_profile = analyze_candidate(resume_text)
-        
+
+            with st.spinner(
+                f"Analyzing {resume.name}..."
+            ):
+
+                candidate_profile = analyze_candidate(
+                    resume_text
+                )
+
+
+            # Candidate profile
             st.subheader("👤 Candidate Profile")
-        
+
             st.json(candidate_profile)
 
-    st.subheader("📃 Extracted Resume Text")
 
-    st.text_area(
-        "Resume content",
-        resume_text,
-        height=400
-    )
+            # Skill matching
+            if job_profile:
 
-    st.divider()
+                result = calculate_skill_match(
+                    job_profile["required_skills"],
+                    candidate_profile["skills"]
+                )
 
-    st.header("💼 Job Description")
 
-    job_description = st.text_area(
-        "Paste the job description here (optional)",
-        placeholder="Paste the job description of the role you are applying for...",
-        height=250
-    )
+                st.subheader("🎯 Skill Match")
 
-    if job_description:
-        st.success("Job description added")
+                st.write(
+                    f"Match Score: **{result['score']}%**"
+                )
 
-    st.divider()
 
-    if job_description:
+                st.write("### Matched Skills")
 
-        if st.button("Analyze Job Description"):
-        
-            with st.spinner("Analyzing job description..."):
-            
-                job_profile = analyze_job_description(job_description)
-    
-            st.subheader("💼 Job Profile")
-    
-            st.json(job_profile)
+                if result["matched_skills"]:
+                    st.write(
+                        result["matched_skills"]
+                    )
+                else:
+                    st.write("No required skills matched.")
+
+
+                st.write("### Missing Skills")
+
+                if result["missing_skills"]:
+                    st.write(
+                        result["missing_skills"]
+                    )
+                else:
+                    st.write(
+                        "No required skills are missing."
+                    )
