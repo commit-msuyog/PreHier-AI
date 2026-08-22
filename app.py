@@ -16,6 +16,15 @@ st.set_page_config(
     layout="centered"
 )
 
+if "job_profile" not in st.session_state:
+    st.session_state.job_profile = None
+
+if "candidate_profiles" not in st.session_state:
+    st.session_state.candidate_profiles = {}
+
+if "match_results" not in st.session_state:
+    st.session_state.match_results = {}
+
 
 # -----------------------------
 # Header
@@ -48,7 +57,6 @@ job_description = st.text_area(
 # Analyze Job Description
 # -----------------------------
 
-job_profile = None
 
 if job_description:
 
@@ -56,11 +64,13 @@ if job_description:
 
         with st.spinner("Analyzing job description..."):
 
-            job_profile = analyze_job_description(job_description)
+            st.session_state.job_profile = analyze_job_description(
+                job_description
+            )
 
         st.subheader("💼 Job Profile")
 
-        st.json(job_profile)
+        st.json(st.session_state.job_profile)
 
 
 st.divider()
@@ -134,6 +144,10 @@ if resumes:
                     resume_text
                 )
 
+                st.session_state.candidate_profiles[
+                    resume.name
+                ] = candidate_profile
+
 
             # Candidate profile
             st.subheader("👤 Candidate Profile")
@@ -142,12 +156,15 @@ if resumes:
 
 
             # Skill matching
-            if job_profile:
+            if st.session_state.job_profile:
 
                 result = calculate_skill_match(
-                    job_profile["required_skills"],
+                    st.session_state.job_profile["required_skills"],
                     candidate_profile["skills"]
                 )
+                st.session_state.match_results[
+                    resume.name
+                ] = result
 
 
                 st.subheader("🎯 Skill Match")
