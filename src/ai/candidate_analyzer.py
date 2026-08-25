@@ -17,7 +17,11 @@ Return ONLY valid JSON with exactly these fields:
     "email": "",
     "phone": "",
     "education": [],
-    "experience": [],
+    "experience": {
+        "years": 0,
+        "roles": [],
+        "description": ""
+    },
     "skills": [],
     "projects": [],
     "certifications": [],
@@ -30,6 +34,11 @@ Rules:
 - Keep skills as simple names.
 - Keep project descriptions short.
 - Keep experience information clear and concise.
+- Estimate total professional work experience only when the dates in the resume support it.
+- Do not count education as work experience.
+- If experience cannot be determined, use 0.
+- Include relevant job roles in roles.
+- Keep relevant work details in description.
 
 Resume:
 {resume_text}

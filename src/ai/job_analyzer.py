@@ -18,7 +18,10 @@ Use exactly these fields:
     "job_title": "",
     "required_skills": [],
     "preferred_skills": [],
-    "experience_required": "",
+    "experience_required": {
+        "years": 0,
+        "description": ""
+    },
     "education": [],
     "responsibilities": []
 }}
@@ -28,6 +31,9 @@ Rules:
 - If something is not mentioned, use an empty string or empty list.
 - Keep skills as simple names.
 - Keep responsibilities short and clear.
+- Extract the minimum required years of experience if mentioned.
+- If no years are mentioned, use 0.
+- Put other experience requirements in description.
 
 Job Description:
 {job_description}
