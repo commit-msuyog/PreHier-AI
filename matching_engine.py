@@ -1,14 +1,10 @@
+from skill_normalizer import normalize_skills
+
+
 def calculate_skill_match(required_skills, candidate_skills):
 
-    required = {
-        skill.strip().lower()
-        for skill in required_skills
-    }
-
-    candidate = {
-        skill.strip().lower()
-        for skill in candidate_skills
-    }
+    required = normalize_skills(required_skills)
+    candidate = normalize_skills(candidate_skills)
 
     if not required:
         return {
