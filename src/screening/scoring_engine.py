@@ -1,4 +1,5 @@
 def calculate_skill_score(required_skills, candidate_skills):
+
     required = {
         skill.strip().lower()
         for skill in required_skills
@@ -14,10 +15,14 @@ def calculate_skill_score(required_skills, candidate_skills):
 
     matched = required.intersection(candidate)
 
-    return round((len(matched) / len(required)) * 100, 2)
+    return round(
+        (len(matched) / len(required)) * 100,
+        2
+    )
 
 
 def calculate_preferred_score(preferred_skills, candidate_skills):
+
     preferred = {
         skill.strip().lower()
         for skill in preferred_skills
@@ -33,7 +38,10 @@ def calculate_preferred_score(preferred_skills, candidate_skills):
 
     matched = preferred.intersection(candidate)
 
-    return round((len(matched) / len(preferred)) * 100, 2)
+    return round(
+        (len(matched) / len(preferred)) * 100,
+        2
+    )
 
 
 def calculate_overall_score(

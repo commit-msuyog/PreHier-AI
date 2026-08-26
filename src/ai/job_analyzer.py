@@ -18,10 +18,10 @@ Use exactly these fields:
     "job_title": "",
     "required_skills": [],
     "preferred_skills": [],
-    "experience_required": {
+    "experience_required": {{
         "years": 0,
         "description": ""
-    },
+    }},
     "education": [],
     "responsibilities": []
 }}

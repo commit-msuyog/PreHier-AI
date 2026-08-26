@@ -17,11 +17,11 @@ Return ONLY valid JSON with exactly these fields:
     "email": "",
     "phone": "",
     "education": [],
-    "experience": {
+    "experience": {{
         "years": 0,
         "roles": [],
         "description": ""
-    },
+    }},
     "skills": [],
     "projects": [],
     "certifications": [],
