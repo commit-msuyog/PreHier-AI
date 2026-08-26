@@ -1,5 +1,5 @@
 import json
-from groq_helper import ask_groq
+from src.ai.groq_helper import ask_groq
 
 
 def analyze_job_description(job_description):

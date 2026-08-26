@@ -1,9 +1,9 @@
 import streamlit as st
 from pypdf import PdfReader
 
-from job_analyzer import analyze_job_description
-from candidate_analyzer import analyze_candidate
-from matching_engine import calculate_skill_match
+from src.ai.job_analyzer import analyze_job_description
+from src.ai.candidate_analyzer import analyze_candidate
+from src.screening.matching_engine import calculate_skill_match
 
 
 # -----------------------------
