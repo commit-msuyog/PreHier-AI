@@ -3,7 +3,10 @@ from pypdf import PdfReader
 
 from src.ai.job_analyzer import analyze_job_description
 from src.ai.candidate_analyzer import analyze_candidate
-from src.screening.matching_engine import calculate_skill_match
+from src.screening.matching_engine import (
+    calculate_skill_match,
+    calculate_preferred_skill_match
+)
 
 
 # -----------------------------
@@ -157,40 +160,65 @@ if resumes:
 
             # Skill matching
             if st.session_state.job_profile:
-
-                result = calculate_skill_match(
+            
+                # Required skills
+                required_result = calculate_skill_match(
                     st.session_state.job_profile["required_skills"],
                     candidate_profile["skills"]
                 )
+            
+                # Preferred skills
+                preferred_result = calculate_preferred_skill_match(
+                    st.session_state.job_profile["preferred_skills"],
+                    candidate_profile["skills"]
+                )
+            
+                # Save screening results
                 st.session_state.match_results[
                     resume.name
-                ] = result
-
-
-                st.subheader("🎯 Skill Match")
-
+                ] = {
+                    "required_skills": required_result,
+                    "preferred_skills": preferred_result
+                }
+            
+                st.subheader("🎯 Skill Screening")
+            
+                # Required skills
                 st.write(
-                    f"Match Score: **{result['score']}%**"
+                    f"**Required Skill Score: "
+                    f"{required_result['score']}%**"
                 )
-
-
-                st.write("### Matched Skills")
-
-                if result["matched_skills"]:
-                    st.write(
-                        result["matched_skills"]
-                    )
+            
+                st.write("### Matched Required Skills")
+            
+                if required_result["matched_skills"]:
+                    st.write(required_result["matched_skills"])
                 else:
                     st.write("No required skills matched.")
-
-
-                st.write("### Missing Skills")
-
-                if result["missing_skills"]:
-                    st.write(
-                        result["missing_skills"]
-                    )
+            
+                st.write("### Missing Required Skills")
+            
+                if required_result["missing_skills"]:
+                    st.write(required_result["missing_skills"])
                 else:
-                    st.write(
-                        "No required skills are missing."
-                    )
+                    st.write("No required skills are missing.")
+            
+                # Preferred skills
+                st.write(
+                    f"**Preferred Skill Score: "
+                    f"{preferred_result['score']}%**"
+                )
+            
+                st.write("### Matched Preferred Skills")
+            
+                if preferred_result["matched"]:
+                    st.write(preferred_result["matched"])
+                else:
+                    st.write("No preferred skills matched.")
+            
+                st.write("### Missing Preferred Skills")
+            
+                if preferred_result["missing"]:
+                    st.write(preferred_result["missing"])
+                else:
+                    st.write("No preferred skills are missing.")

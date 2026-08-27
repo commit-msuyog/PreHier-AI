@@ -24,7 +24,38 @@ def calculate_skill_match(required_skills, candidate_skills):
         "missing_skills": sorted(missing)
     }
 
-def calculate_education_match(required_education, candidate_education):
+
+def calculate_preferred_skill_match(
+    preferred_skills,
+    candidate_skills
+):
+
+    if not preferred_skills:
+        return {
+            "score": 100,
+            "matched": [],
+            "missing": []
+        }
+
+    preferred = normalize_skills(preferred_skills)
+    candidate = normalize_skills(candidate_skills)
+
+    matched = preferred.intersection(candidate)
+    missing = preferred - candidate
+
+    score = (len(matched) / len(preferred)) * 100
+
+    return {
+        "score": round(score, 2),
+        "matched": sorted(matched),
+        "missing": sorted(missing)
+    }
+
+
+def calculate_education_match(
+    required_education,
+    candidate_education
+):
 
     if not required_education:
         return {
