@@ -8,10 +8,12 @@ from src.screening.matching_engine import (
     calculate_preferred_skill_match
 )
 
+from src.screening.evidence_matcher import (
+    evaluate_requirement_evidence
+)
 
-# -----------------------------
 # Page Configuration
-# -----------------------------
+
 
 st.set_page_config(
     page_title="PreHier",
@@ -29,9 +31,8 @@ if "match_results" not in st.session_state:
     st.session_state.match_results = {}
 
 
-# -----------------------------
 # Header
-# -----------------------------
+
 
 st.title("🎯 PreHier")
 st.subheader("AI-Powered Pre-Hire Screening")
@@ -43,9 +44,8 @@ st.write(
 st.divider()
 
 
-# -----------------------------
 # Job Description
-# -----------------------------
+
 
 st.header("💼 Job Description")
 
@@ -56,9 +56,8 @@ job_description = st.text_area(
 )
 
 
-# -----------------------------
 # Analyze Job Description
-# -----------------------------
+
 
 
 if job_description:
@@ -79,9 +78,8 @@ if job_description:
 st.divider()
 
 
-# -----------------------------
 # Candidate Resumes
-# -----------------------------
+
 
 st.header("📄 Candidate Resumes")
 
@@ -93,9 +91,8 @@ resumes = st.file_uploader(
 )
 
 
-# -----------------------------
 # Analyze Candidates
-# -----------------------------
+
 
 if resumes:
 
@@ -138,27 +135,23 @@ if resumes:
             f"Analyze {resume.name}",
             key=f"analyze_{resume.name}"
         ):
-
+        
             with st.spinner(
                 f"Analyzing {resume.name}..."
             ):
-
+        
                 candidate_profile = analyze_candidate(
                     resume_text
                 )
-
+        
                 st.session_state.candidate_profiles[
                     resume.name
                 ] = candidate_profile
-
-
-            # Candidate profile
+        
             st.subheader("👤 Candidate Profile")
-
+        
             st.json(candidate_profile)
-
-
-            # Skill matching
+        
             if st.session_state.job_profile:
             
                 # Required skills
@@ -166,59 +159,154 @@ if resumes:
                     st.session_state.job_profile["required_skills"],
                     candidate_profile["skills"]
                 )
-            
+        
+        
                 # Preferred skills
                 preferred_result = calculate_preferred_skill_match(
                     st.session_state.job_profile["preferred_skills"],
                     candidate_profile["skills"]
                 )
-            
-                # Save screening results
+        
+        
+                # Evidence-based evaluation
+                with st.spinner(
+                    "Evaluating candidate evidence..."
+                ):
+        
+                    evidence_result = evaluate_requirement_evidence(
+                        st.session_state.job_profile["required_skills"],
+                        candidate_profile
+                    )
+        
                 st.session_state.match_results[
                     resume.name
                 ] = {
                     "required_skills": required_result,
-                    "preferred_skills": preferred_result
+                    "preferred_skills": preferred_result,
+                    "evidence": evidence_result
                 }
-            
+    
+        
                 st.subheader("🎯 Skill Screening")
-            
+        
+        
                 # Required skills
                 st.write(
                     f"**Required Skill Score: "
                     f"{required_result['score']}%**"
                 )
-            
+        
                 st.write("### Matched Required Skills")
-            
+        
                 if required_result["matched_skills"]:
-                    st.write(required_result["matched_skills"])
+                
+                    st.write(
+                        required_result["matched_skills"]
+                    )
+        
                 else:
-                    st.write("No required skills matched.")
-            
+                
+                    st.write(
+                        "No required skills matched."
+                    )
+        
+        
                 st.write("### Missing Required Skills")
-            
+        
                 if required_result["missing_skills"]:
-                    st.write(required_result["missing_skills"])
+                
+                    st.write(
+                        required_result["missing_skills"]
+                    )
+        
                 else:
-                    st.write("No required skills are missing.")
-            
-                # Preferred skills
+                
+                    st.write(
+                        "No required skills are missing."
+                    )
+        
                 st.write(
                     f"**Preferred Skill Score: "
                     f"{preferred_result['score']}%**"
                 )
-            
+        
                 st.write("### Matched Preferred Skills")
-            
+        
                 if preferred_result["matched"]:
-                    st.write(preferred_result["matched"])
+                
+                    st.write(
+                        preferred_result["matched"]
+                    )
+        
                 else:
-                    st.write("No preferred skills matched.")
-            
+                
+                    st.write(
+                        "No preferred skills matched."
+                    )
+        
+        
                 st.write("### Missing Preferred Skills")
-            
+        
                 if preferred_result["missing"]:
-                    st.write(preferred_result["missing"])
+                
+                    st.write(
+                        preferred_result["missing"]
+                    )
+        
                 else:
-                    st.write("No preferred skills are missing.")
+                
+                    st.write(
+                        "No preferred skills are missing."
+                    )
+        
+                st.subheader(
+                    "🧠 Requirement Evidence"
+                )
+        
+        
+                if "requirements" in evidence_result:
+                
+                    for requirement in evidence_result[
+                        "requirements"
+                    ]:
+        
+                        skill = requirement.get(
+                            "skill",
+                            ""
+                        )
+        
+                        level = requirement.get(
+                            "evidence_level",
+                            "none"
+                        )
+        
+                        evidence = requirement.get(
+                            "evidence",
+                            ""
+                        )
+        
+        
+                        st.write(
+                            f"**{skill} — "
+                            f"{level.upper()}**"
+                        )
+        
+        
+                        if evidence:
+                        
+                            st.caption(
+                                f"Evidence: {evidence}"
+                            )
+        
+                        else:
+                        
+                            st.caption(
+                                "No evidence found."
+                            )
+        
+        
+                else:
+                
+                    st.warning(
+                        "Could not evaluate candidate evidence."
+                    )
