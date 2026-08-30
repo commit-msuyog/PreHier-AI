@@ -11,6 +11,9 @@ from src.screening.matching_engine import (
 from src.screening.evidence_matcher import (
     evaluate_requirement_evidence
 )
+from src.screening.project_matcher import (
+    evaluate_project_relevance
+)
 
 # Page Configuration
 
@@ -177,13 +180,24 @@ if resumes:
                         st.session_state.job_profile["required_skills"],
                         candidate_profile
                     )
-        
+
+                # Project relevance evaluation
+                with st.spinner(
+                    "Evaluating project relevance..."
+                ):
+
+                    project_result = evaluate_project_relevance(
+                        st.session_state.job_profile,
+                        candidate_profile["projects"]
+                    )
+
                 st.session_state.match_results[
                     resume.name
                 ] = {
                     "required_skills": required_result,
                     "preferred_skills": preferred_result,
-                    "evidence": evidence_result
+                    "evidence": evidence_result,
+                    "projects": project_result
                 }
     
         
@@ -309,4 +323,47 @@ if resumes:
                 
                     st.warning(
                         "Could not evaluate candidate evidence."
+                    )
+
+                # Project Relevance
+                st.subheader("📁 Project Relevance")
+                
+                if "projects" in project_result:
+                
+                    st.write(
+                        f"**Overall Project Relevance: "
+                        f"{project_result.get('overall_relevance', 'unknown').upper()}%**"
+                    )
+                
+                    for project in project_result["projects"]:
+                    
+                        title = project.get(
+                            "title",
+                            "Unnamed Project"
+                        )
+                
+                        relevance = project.get(
+                            "relevance",
+                            "none"
+                        )
+                
+                        reason = project.get(
+                            "reason",
+                            ""
+                        )
+                
+                        st.write(
+                            f"**{title} — "
+                            f"{relevance.upper()}**"
+                        )
+                
+                        if reason:
+                            st.caption(
+                                f"Reason: {reason}"
+                            )
+                
+                else:
+                
+                    st.warning(
+                        "Could not evaluate project relevance."
                     )
