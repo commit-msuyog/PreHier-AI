@@ -75,6 +75,59 @@ def calculate_experience_score(
 
     return round(score, 2)
 
+def calculate_education_score(
+    required_education,
+    candidate_education
+):
+
+    if not required_education:
+        return 100
+
+    required = " ".join(
+        education.lower()
+        for education in required_education
+    )
+
+    candidate = " ".join(
+        education.lower()
+        for education in candidate_education
+    )
+
+    # Degree-level matching
+    degree_levels = [
+        ("phd", 4),
+        ("doctorate", 4),
+        ("master", 3),
+        ("m.tech", 3),
+        ("mca", 3),
+        ("bachelor", 2),
+        ("b.tech", 2),
+        ("b.e", 2),
+        ("bca", 2),
+        ("diploma", 1)
+    ]
+
+    required_level = 0
+    candidate_level = 0
+
+    for keyword, level in degree_levels:
+        if keyword in required:
+            required_level = max(required_level, level)
+
+        if keyword in candidate:
+            candidate_level = max(candidate_level, level)
+
+    if candidate_level >= required_level:
+        return 100
+
+    if candidate_level > 0 and required_level > 0:
+        return round(
+            (candidate_level / required_level) * 100,
+            2
+        )
+
+    return 0
+
 
 def calculate_overall_score(
     required_skill_score,
