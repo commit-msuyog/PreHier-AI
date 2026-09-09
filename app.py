@@ -15,8 +15,7 @@ from src.screening.scoring_engine import (
 )
 from src.screening.evidence_matcher import evaluate_requirement_evidence
 from src.screening.project_matcher import evaluate_project_relevance
-
-# Page configuration
+from src.screening.ranking_engine import rank_candidates
 
 st.set_page_config(
     page_title="PreHier",
@@ -33,16 +32,13 @@ if "candidate_profiles" not in st.session_state:
 if "match_results" not in st.session_state:
     st.session_state.match_results = {}
 
-# Header
-
 st.title("🎯 PreHier")
 st.subheader("AI-Powered Pre-Hire Screening")
 st.write(
     "Screen and shortlist candidates based on your job requirements."
 )
-st.divider()
 
-# Job description
+st.divider()
 
 st.header("💼 Job Description")
 
@@ -64,8 +60,6 @@ if job_description:
 
 st.divider()
 
-# Candidate resumes
-
 st.header("📄 Candidate Resumes")
 
 resumes = st.file_uploader(
@@ -80,40 +74,39 @@ if resumes:
         f"{len(resumes)} candidate resume(s) uploaded."
     )
 
-    for resume in resumes:
-        st.divider()
-        st.subheader(f"📄 {resume.name}")
-
-        # Extract resume text
-
-        reader = PdfReader(resume)
-        resume_text = ""
-
-        for page in reader.pages:
-            text = page.extract_text()
-
-            if text:
-                resume_text += text + "\n"
-
-        # Show extracted resume text
-
-        with st.expander("View Extracted Resume Text"):
-            st.text_area(
-                "Resume Content",
-                resume_text,
-                height=250,
-                key=f"text_{resume.name}"
+    if st.button(
+        "🚀 Analyze All Resumes",
+        type="primary"
+    ):
+        if not st.session_state.job_profile:
+            st.warning(
+                "Please analyze the job description first."
             )
+        else:
+            st.session_state.candidate_profiles = {}
+            st.session_state.match_results = {}
 
-        # Analyze candidate
+            progress_bar = st.progress(0)
+            status_text = st.empty()
 
-        if st.button(
-            f"Analyze {resume.name}",
-            key=f"analyze_{resume.name}"
-        ):
-            with st.spinner(
-                f"Analyzing {resume.name}..."
-            ):
+            total_resumes = len(resumes)
+
+            for index, resume in enumerate(resumes):
+
+                status_text.write(
+                    f"Analyzing {resume.name} "
+                    f"({index + 1}/{total_resumes})..."
+                )
+
+                reader = PdfReader(resume)
+                resume_text = ""
+
+                for page in reader.pages:
+                    text = page.extract_text()
+
+                    if text:
+                        resume_text += text + "\n"
+
                 candidate_profile = analyze_candidate(
                     resume_text
                 )
@@ -121,13 +114,6 @@ if resumes:
                 st.session_state.candidate_profiles[
                     resume.name
                 ] = candidate_profile
-
-            st.subheader("👤 Candidate Profile")
-            st.json(candidate_profile)
-
-            if st.session_state.job_profile:
-
-                # Calculate experience score
 
                 required_experience = (
                     st.session_state.job_profile[
@@ -154,16 +140,12 @@ if resumes:
                     candidate_years
                 )
 
-                # Calculate required skill match
-
                 required_result = calculate_skill_match(
                     st.session_state.job_profile[
                         "required_skills"
                     ],
                     candidate_profile["skills"]
                 )
-
-                # Calculate preferred skill match
 
                 preferred_result = calculate_preferred_skill_match(
                     st.session_state.job_profile[
@@ -172,29 +154,17 @@ if resumes:
                     candidate_profile["skills"]
                 )
 
-                # Evaluate requirement evidence
+                evidence_result = evaluate_requirement_evidence(
+                    st.session_state.job_profile[
+                        "required_skills"
+                    ],
+                    candidate_profile
+                )
 
-                with st.spinner(
-                    "Evaluating candidate evidence..."
-                ):
-                    evidence_result = (
-                        evaluate_requirement_evidence(
-                            st.session_state.job_profile[
-                                "required_skills"
-                            ],
-                            candidate_profile
-                        )
-                    )
-
-                # Evaluate project relevance
-
-                with st.spinner(
-                    "Evaluating project relevance..."
-                ):
-                    project_result = evaluate_project_relevance(
-                        st.session_state.job_profile,
-                        candidate_profile["projects"]
-                    )
+                project_result = evaluate_project_relevance(
+                    st.session_state.job_profile,
+                    candidate_profile["projects"]
+                )
 
                 project_relevance_score = relevance_to_score(
                     project_result.get(
@@ -202,8 +172,6 @@ if resumes:
                         "none"
                     )
                 )
-
-                # Calculate education score
 
                 education_score = calculate_education_score(
                     st.session_state.job_profile[
@@ -214,8 +182,6 @@ if resumes:
                     ]
                 )
 
-                # Calculate overall score
-
                 overall_score = calculate_overall_score(
                     required_result["score"],
                     preferred_result["score"],
@@ -223,8 +189,6 @@ if resumes:
                     education_score,
                     project_relevance_score
                 )
-
-                # Save screening results
 
                 st.session_state.match_results[
                     resume.name
@@ -239,184 +203,248 @@ if resumes:
                     "projects": project_result
                 }
 
-                # Overall candidate score
-
-                st.subheader("🏆 Candidate Score")
-
-                st.metric(
-                    "Overall Match Score",
-                    f"{overall_score}%"
+                progress_bar.progress(
+                    (index + 1) / total_resumes
                 )
 
-                # Score breakdown
+            status_text.success(
+                f"Successfully analyzed {total_resumes} resume(s)."
+            )
 
-                st.write("### Score Breakdown")
+st.divider()
+
+if st.session_state.candidate_profiles:
+
+    st.header("👥 Candidate Profiles")
+
+    for candidate_name, candidate_profile in (
+        st.session_state.candidate_profiles.items()
+    ):
+        with st.expander(
+            f"👤 {candidate_name}"
+        ):
+            st.json(candidate_profile)
+
+st.divider()
+
+if st.session_state.match_results:
+
+    st.header("📊 Screening Results")
+
+    for candidate_name, result in (
+        st.session_state.match_results.items()
+    ):
+        st.subheader(
+            f"📄 {candidate_name}"
+        )
+
+        st.metric(
+            "Overall Match Score",
+            f"{result['overall_score']}%"
+        )
+
+        st.write("### Score Breakdown")
+
+        st.write(
+            f"Required Skills: "
+            f"**{result['required_skills']['score']}%**"
+        )
+
+        st.write(
+            f"Preferred Skills: "
+            f"**{result['preferred_skills']['score']}%**"
+        )
+
+        st.write(
+            f"Experience: "
+            f"**{result['experience_score']}%**"
+        )
+
+        st.write(
+            f"Education: "
+            f"**{result['education_score']}%**"
+        )
+
+        st.write(
+            f"Project Relevance: "
+            f"**{result['project_relevance_score']}%**"
+        )
+
+        st.write("### 🎯 Skill Screening")
+
+        required_result = result["required_skills"]
+
+        st.write(
+            "**Matched Required Skills**"
+        )
+
+        if required_result["matched_skills"]:
+            st.write(
+                required_result["matched_skills"]
+            )
+        else:
+            st.write(
+                "No required skills matched."
+            )
+
+        st.write(
+            "**Missing Required Skills**"
+        )
+
+        if required_result["missing_skills"]:
+            st.write(
+                required_result["missing_skills"]
+            )
+        else:
+            st.write(
+                "No required skills are missing."
+            )
+
+        preferred_result = result["preferred_skills"]
+
+        st.write(
+            "**Matched Preferred Skills**"
+        )
+
+        if preferred_result["matched"]:
+            st.write(
+                preferred_result["matched"]
+            )
+        else:
+            st.write(
+                "No preferred skills matched."
+            )
+
+        st.write(
+            "**Missing Preferred Skills**"
+        )
+
+        if preferred_result["missing"]:
+            st.write(
+                preferred_result["missing"]
+            )
+        else:
+            st.write(
+                "No preferred skills are missing."
+            )
+
+        st.write("### 🧠 Requirement Evidence")
+
+        evidence_result = result["evidence"]
+
+        if "requirements" in evidence_result:
+
+            for requirement in evidence_result[
+                "requirements"
+            ]:
+                skill = requirement.get(
+                    "skill",
+                    ""
+                )
+
+                level = requirement.get(
+                    "evidence_level",
+                    "none"
+                )
+
+                evidence = requirement.get(
+                    "evidence",
+                    ""
+                )
 
                 st.write(
-                    f"Required Skills: "
-                    f"**{required_result['score']}%**"
+                    f"**{skill} — "
+                    f"{level.upper()}**"
                 )
 
-                st.write(
-                    f"Preferred Skills: "
-                    f"**{preferred_result['score']}%**"
-                )
-
-                st.write(
-                    f"Experience: "
-                    f"**{experience_score}%**"
-                )
-
-                st.write(
-                    f"Education: "
-                    f"**{education_score}%**"
-                )
-
-                st.write(
-                    f"Project Relevance: "
-                    f"**{project_relevance_score}%**"
-                )
-
-                # Skill screening
-
-                st.subheader("🎯 Skill Screening")
-
-                st.write(
-                    f"**Required Skill Score: "
-                    f"{required_result['score']}%**"
-                )
-
-                st.write("### Matched Required Skills")
-
-                if required_result["matched_skills"]:
-                    st.write(
-                        required_result["matched_skills"]
+                if evidence:
+                    st.caption(
+                        f"Evidence: {evidence}"
                     )
                 else:
-                    st.write(
-                        "No required skills matched."
+                    st.caption(
+                        "No evidence found."
                     )
 
-                st.write("### Missing Required Skills")
+        else:
+            st.warning(
+                "Could not evaluate candidate evidence."
+            )
 
-                if required_result["missing_skills"]:
-                    st.write(
-                        required_result["missing_skills"]
-                    )
-                else:
-                    st.write(
-                        "No required skills are missing."
-                    )
+        st.write("### 📁 Project Relevance")
 
-                st.write(
-                    f"**Preferred Skill Score: "
-                    f"{preferred_result['score']}%**"
+        project_result = result["projects"]
+
+        if "projects" in project_result:
+
+            st.write(
+                f"**Overall Project Relevance: "
+                f"{project_result.get(
+                    'overall_relevance',
+                    'unknown'
+                ).upper()}**"
+            )
+
+            for project in project_result[
+                "projects"
+            ]:
+                title = project.get(
+                    "title",
+                    "Unnamed Project"
                 )
 
-                st.write("### Matched Preferred Skills")
+                relevance = project.get(
+                    "relevance",
+                    "none"
+                )
 
-                if preferred_result["matched"]:
-                    st.write(
-                        preferred_result["matched"]
-                    )
-                else:
-                    st.write(
-                        "No preferred skills matched."
-                    )
+                reason = project.get(
+                    "reason",
+                    ""
+                )
 
-                st.write("### Missing Preferred Skills")
+                st.write(
+                    f"**{title} — "
+                    f"{relevance.upper()}**"
+                )
 
-                if preferred_result["missing"]:
-                    st.write(
-                        preferred_result["missing"]
-                    )
-                else:
-                    st.write(
-                        "No preferred skills are missing."
+                if reason:
+                    st.caption(
+                        f"Reason: {reason}"
                     )
 
-                # Requirement evidence
+        else:
+            st.warning(
+                "Could not evaluate project relevance."
+            )
 
-                st.subheader("🧠 Requirement Evidence")
+st.divider()
 
-                if "requirements" in evidence_result:
-                    for requirement in evidence_result[
-                        "requirements"
-                    ]:
-                        skill = requirement.get(
-                            "skill",
-                            ""
-                        )
+st.header("🏆 Candidate Ranking")
 
-                        level = requirement.get(
-                            "evidence_level",
-                            "none"
-                        )
+if st.session_state.match_results:
 
-                        evidence = requirement.get(
-                            "evidence",
-                            ""
-                        )
+    ranked_candidates = rank_candidates(
+        st.session_state.match_results
+    )
 
-                        st.write(
-                            f"**{skill} — "
-                            f"{level.upper()}**"
-                        )
+    for candidate in ranked_candidates:
 
-                        if evidence:
-                            st.caption(
-                                f"Evidence: {evidence}"
-                            )
-                        else:
-                            st.caption(
-                                "No evidence found."
-                            )
-                else:
-                    st.warning(
-                        "Could not evaluate candidate evidence."
-                    )
+        st.write(
+            f"**#{candidate['rank']} — "
+            f"{candidate['candidate']}**"
+        )
 
-                # Project relevance
+        st.progress(
+            min(candidate["score"] / 100, 1.0)
+        )
 
-                st.subheader("📁 Project Relevance")
+        st.caption(
+            f"Overall Match Score: "
+            f"{candidate['score']}%"
+        )
 
-                if "projects" in project_result:
-                    st.write(
-                        f"**Overall Project Relevance: "
-                        f"{project_result.get(
-                            'overall_relevance',
-                            'unknown'
-                        ).upper()}**"
-                    )
-
-                    for project in project_result[
-                        "projects"
-                    ]:
-                        title = project.get(
-                            "title",
-                            "Unnamed Project"
-                        )
-
-                        relevance = project.get(
-                            "relevance",
-                            "none"
-                        )
-
-                        reason = project.get(
-                            "reason",
-                            ""
-                        )
-
-                        st.write(
-                            f"**{title} — "
-                            f"{relevance.upper()}**"
-                        )
-
-                        if reason:
-                            st.caption(
-                                f"Reason: {reason}"
-                            )
-                else:
-                    st.warning(
-                        "Could not evaluate project relevance."
-                    )
+else:
+    st.info(
+        "Analyze resumes to generate the candidate ranking."
+    )
