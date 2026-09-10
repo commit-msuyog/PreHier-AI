@@ -17,6 +17,7 @@ from src.screening.evidence_matcher import evaluate_requirement_evidence
 from src.screening.project_matcher import evaluate_project_relevance
 from src.screening.ranking_engine import rank_candidates
 from src.screening.shortlist_engine import create_shortlist
+from src.screening.comparison_engine import compare_candidates
 
 
 st.set_page_config(
@@ -505,4 +506,28 @@ if st.session_state.match_results:
 else:
     st.info(
         "Analyze resumes before creating a shortlist."
+    )
+st.divider()
+
+st.header("📊 Candidate Comparison")
+
+if st.session_state.match_results:
+
+    ranked_candidates = rank_candidates(
+        st.session_state.match_results
+    )
+
+    comparison = compare_candidates(
+        ranked_candidates,
+        st.session_state.match_results
+    )
+
+    st.dataframe(
+        comparison,
+        use_container_width=True
+    )
+
+else:
+    st.info(
+        "Analyze resumes to compare candidates."
     )
