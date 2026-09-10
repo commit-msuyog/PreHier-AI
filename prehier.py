@@ -6,6 +6,7 @@ from ui.results_section import show_results
 from ui.ranking_section import show_ranking
 from ui.shortlist_section import show_shortlist
 from ui.comparison_section import show_comparison
+from ui.dashboard import show_dashboard
 
 
 st.set_page_config(
@@ -45,6 +46,12 @@ show_resume_section(
 show_results(
     st.session_state.candidate_profiles,
     st.session_state.match_results
+)
+
+show_dashboard(
+    st.session_state.candidate_profiles,
+    st.session_state.match_results,
+    st.session_state.selected_candidates
 )
 
 show_ranking(

@@ -38,9 +38,21 @@ def show_ranking(match_results):
         )
 
         if candidate_name in st.session_state.selected_candidates:
+
             st.success("⭐ Shortlisted")
 
+            if st.button(
+                "❌ Remove from Shortlist",
+                key=f"remove_{candidate_name}"
+            ):
+                st.session_state.selected_candidates.remove(
+                    candidate_name
+                )
+
+                st.rerun()
+
         else:
+        
             if st.button(
                 "⭐ Shortlist",
                 key=f"shortlist_{candidate_name}"

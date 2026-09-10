@@ -1,6 +1,6 @@
 from pypdf import PdfReader
 
-from ai.candidate_analyzer import analyze_candidate
+from ai.screening_analyzer import analyze_screening
 
 from screening.matching_engine import (
     calculate_skill_match,
@@ -14,8 +14,8 @@ from screening.scoring_engine import (
     relevance_to_score
 )
 
-from screening.evidence_matcher import evaluate_requirement_evidence
-from screening.project_matcher import evaluate_project_relevance
+#from screening.evidence_matcher import evaluate_requirement_evidence
+#from screening.project_matcher import evaluate_project_relevance
 
 
 def extract_resume_text(resume):
@@ -37,10 +37,23 @@ def screen_resume(resume, job_profile):
 
     resume_text = extract_resume_text(resume)
 
-    candidate_profile = analyze_candidate(
-        resume_text
+    screening_result = analyze_screening(
+        resume_text,
+        job_profile
     )
-
+    
+    candidate_profile = screening_result[
+        "candidate_profile"
+    ]
+    
+    evidence_result = screening_result[
+        "evidence"
+    ]
+    
+    project_result = screening_result[
+        "projects"
+    ]
+    
     required_experience = (
         job_profile["experience_required"]
     )
@@ -71,16 +84,16 @@ def screen_resume(resume, job_profile):
         job_profile["preferred_skills"],
         candidate_profile["skills"]
     )
-
-    evidence_result = evaluate_requirement_evidence(
-        job_profile["required_skills"],
-        candidate_profile
-    )
-
-    project_result = evaluate_project_relevance(
-        job_profile,
-        candidate_profile["projects"]
-    )
+#
+#    evidence_result = evaluate_requirement_evidence(
+#        job_profile["required_skills"],
+#        candidate_profile
+#    )
+#
+#    project_result = evaluate_project_relevance(
+#        job_profile,
+#        candidate_profile["projects"]
+#    )
 
     project_relevance_score = relevance_to_score(
         project_result.get(
