@@ -1,4 +1,4 @@
-from src.screening.skill_normalizer import normalize_skills
+from screening.skill_normalizer import normalize_skills
 
 
 def calculate_skill_match(required_skills, candidate_skills):

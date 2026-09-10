@@ -1,6 +1,6 @@
 import json
 
-from src.ai.groq_helper import ask_groq
+from ai.groq_helper import ask_groq
 
 
 def evaluate_requirement_evidence(
