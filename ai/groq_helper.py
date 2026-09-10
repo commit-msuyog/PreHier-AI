@@ -17,7 +17,11 @@ def ask_groq(prompt):
                 "role": "user",
                 "content": prompt
             }
-        ]
+        ],
+        response_format={
+            "type": "json_object"
+        },
+        max_tokens=3000
     )
 
     return response.choices[0].message.content

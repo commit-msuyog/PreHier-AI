@@ -7,6 +7,7 @@ from ui.ranking_section import show_ranking
 from ui.shortlist_section import show_shortlist
 from ui.comparison_section import show_comparison
 from ui.dashboard import show_dashboard
+from ui.export_section import show_export
 
 
 st.set_page_config(
@@ -63,5 +64,9 @@ show_shortlist(
 )
 
 show_comparison(
+    st.session_state.match_results
+)
+
+show_export(
     st.session_state.match_results
 )

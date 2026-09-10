@@ -42,17 +42,30 @@ def screen_resume(resume, job_profile):
         job_profile
     )
     
-    candidate_profile = screening_result[
-        "candidate_profile"
-    ]
+    if "error" in screening_result:
+        raise ValueError(
+            screening_result["error"]
+        )
     
-    evidence_result = screening_result[
-        "evidence"
-    ]
+    candidate_profile = screening_result.get(
+        "candidate_profile",
+        {}
+    )
     
-    project_result = screening_result[
-        "projects"
-    ]
+    evidence_result = screening_result.get(
+        "evidence",
+        {
+            "requirements": []
+        }
+    )
+    
+    project_result = screening_result.get(
+        "projects",
+        {
+            "overall_relevance": "none",
+            "projects": []
+        }
+    )
     
     required_experience = (
         job_profile["experience_required"]

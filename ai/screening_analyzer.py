@@ -8,7 +8,7 @@ def analyze_screening(resume_text, job_profile):
     prompt = f"""
 You are an AI recruitment screening assistant.
 
-Analyze the candidate resume against the provided job profile.
+Analyze this resume against the job profile.
 
 Job Profile:
 {json.dumps(job_profile)}
@@ -16,7 +16,7 @@ Job Profile:
 Resume:
 {resume_text}
 
-Return ONLY valid JSON with exactly these fields:
+Return ONLY valid JSON in exactly this structure:
 
 {{
     "candidate_profile": {{
@@ -35,93 +35,53 @@ Return ONLY valid JSON with exactly these fields:
         "achievements": []
     }},
     "evidence": {{
-        "requirements": []
+        "requirements": [
+            {{
+                "skill": "",
+                "evidence_level": "strong|partial|none",
+                "evidence": ""
+            }}
+        ]
     }},
     "projects": {{
         "overall_relevance": "strong|partial|none",
-        "projects": []
+        "projects": [
+            {{
+                "title": "",
+                "relevance": "strong|partial|none",
+                "reason": ""
+            }}
+        ]
     }}
 }}
 
-Candidate Profile Rules:
-- Do not invent information.
-- If information is not mentioned, use an empty string, empty list, or 0.
-- Education MUST be an array of strings.
-- Skills MUST be an array of strings.
-- Certifications MUST be an array of strings.
-- Achievements MUST be an array of strings.
-- Keep project descriptions short.
-- Estimate total professional work experience only when the dates support it.
+Candidate Profile:
+- Extract only information explicitly stated in the resume.
+- Use empty strings, empty lists, or 0 when information is unavailable.
+- Education, skills, certifications, and achievements must be arrays of strings.
+- Projects must contain concise project information.
+- Estimate professional experience only when supported by dates.
 - Do not count education as work experience.
-- If experience cannot be determined, use 0.
-- Include relevant job roles in roles.
-- Keep relevant work details in description.
 
-Requirement Evidence Rules:
-Evaluate each required skill from the job profile.
+Requirement Evidence:
+- Evaluate every required skill from the job profile.
+- strong = clearly demonstrated.
+- partial = related evidence exists.
+- none = no meaningful evidence.
+- Evidence must come only from the resume.
+- Keep each evidence statement under 12 words.
 
-Use:
-"strong" → clearly demonstrated through skills, projects,
-             experience, or achievements.
+Project Relevance:
+- Evaluate projects against the job responsibilities and skills.
+- strong = directly relevant.
+- partial = meaningful but indirect relevance.
+- none = little or no relevance.
+- Do not assume technologies that are not stated.
+- Judge actual project work, not keyword matching alone.
+- Keep each project reason under 15 words.
 
-"partial" → related evidence exists, but the requirement
-             is not clearly demonstrated.
-
-"none" → no meaningful evidence found.
-
-For each requirement return:
-
-{{
-    "skill": "",
-    "evidence_level": "strong|partial|none",
-    "evidence": ""
-}}
-
-- Evidence must come only from the candidate resume.
-- Do not invent evidence.
-- Keep evidence short and factual.
-
-Project Relevance Rules:
-Evaluate each candidate project against the job profile.
-
-Consider:
-1. Similarity between the project's actual work and job responsibilities.
-2. Concepts related to required skills.
-3. Concepts related to preferred skills.
-4. Technical domain and type of problem solved.
-5. Demonstrated application of relevant knowledge.
-
-Do NOT require the project description to explicitly mention
-every technology in the job description.
-
-Do NOT assume a technology was used unless it is explicitly stated.
-
-Classify each project as:
-
-"strong" → directly demonstrates work or concepts highly relevant
-            to the job.
-
-"partial" → meaningful overlap exists but does not directly
-             demonstrate the main requirements.
-
-"none" → little or no meaningful relationship to the job.
-
-For each project return:
-
-{{
-    "title": "",
-    "relevance": "strong|partial|none",
-    "reason": ""
-}}
-
-- Do not invent project details.
-- Use only information provided in the resume.
-- Keep reasons concise and factual.
-- Judge project relevance based on actual work, not keyword
-  matching alone.
-
-The "overall_relevance" value must be:
-"strong", "partial", or "none".
+Keep all descriptions concise.
+Do not add explanations outside the JSON.
 """
 
     response = ask_groq(prompt)
@@ -129,16 +89,14 @@ The "overall_relevance" value must be:
     try:
         cleaned_response = response.strip()
 
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[7:].strip()
+
         if cleaned_response.startswith("```"):
-            cleaned_response = cleaned_response.replace(
-                "```json",
-                "",
-                1
-            ).replace(
-                "```",
-                "",
-                1
-            ).strip()
+            cleaned_response = cleaned_response[3:].strip()
+
+        if cleaned_response.endswith("```"):
+            cleaned_response = cleaned_response[:-3].strip()
 
         return json.loads(cleaned_response)
 
