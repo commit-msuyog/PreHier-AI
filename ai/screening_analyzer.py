@@ -1,6 +1,6 @@
 import json
 
-from ai.groq_helper import ask_groq
+from ai.groq_helper import ask_groq, GroqRequestError
 
 
 def analyze_screening(resume_text, job_profile):
@@ -84,7 +84,12 @@ Keep all descriptions concise.
 Do not add explanations outside the JSON.
 """
 
-    response = ask_groq(prompt)
+    try:
+        response = ask_groq(prompt)
+    except GroqRequestError as error:
+        return {
+            "error": str(error)
+        }
 
     try:
         cleaned_response = response.strip()

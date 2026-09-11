@@ -1,5 +1,5 @@
 import json
-from ai.groq_helper import ask_groq
+from ai.groq_helper import ask_groq, GroqRequestError
 
 
 def analyze_job_description(job_description):
@@ -39,7 +39,12 @@ Job Description:
 {job_description}
 """
 
-    response = ask_groq(prompt)
+    try:
+        response = ask_groq(prompt)
+    except GroqRequestError as error:
+        return {
+            "error": str(error)
+        }
 
     try:
         return json.loads(response)

@@ -19,21 +19,48 @@ from screening.scoring_engine import (
 
 
 def extract_resume_text(resume):
+    """Extract text from an uploaded PDF resume.
 
-    reader = PdfReader(resume)
+    Raises ValueError with a recruiter-friendly message (instead of
+    letting pypdf's exception or an empty document propagate) so the
+    calling UI can show a clean message per-resume without crashing the
+    whole analysis batch.
+    """
+
+    try:
+        reader = PdfReader(resume)
+    except Exception as error:
+        raise ValueError(
+            "Unable to open this PDF. Please check that the file is a "
+            "valid, unencrypted PDF."
+        ) from error
 
     resume_text = ""
 
     for page in reader.pages:
-        text = page.extract_text()
+        try:
+            text = page.extract_text()
+        except Exception:
+            text = None
 
         if text:
             resume_text += text + "\n"
+
+    if not resume_text.strip():
+        raise ValueError(
+            "Unable to analyze this resume. Please check that the PDF "
+            "contains readable (non-scanned) text."
+        )
 
     return resume_text
 
 
 def screen_resume(resume, job_profile):
+
+    if not job_profile or "error" in job_profile:
+        raise ValueError(
+            "The job description has not been analyzed successfully yet."
+        )
 
     resume_text = extract_resume_text(resume)
 
@@ -50,7 +77,7 @@ def screen_resume(resume, job_profile):
     candidate_profile = screening_result.get(
         "candidate_profile",
         {}
-    )
+    ) or {}
     
     evidence_result = screening_result.get(
         "evidence",
@@ -66,10 +93,11 @@ def screen_resume(resume, job_profile):
             "projects": []
         }
     )
-    
-    required_experience = (
-        job_profile["experience_required"]
-    )
+
+    # The AI is instructed to always return every field, but defensively
+    # fall back to safe defaults so a partially-shaped response never
+    # crashes the app with a KeyError.
+    required_experience = job_profile.get("experience_required", {}) or {}
 
     required_years = required_experience.get(
         "years",
@@ -77,10 +105,10 @@ def screen_resume(resume, job_profile):
     )
 
     candidate_years = (
-        candidate_profile["experience"].get(
-            "years",
-            0
-        )
+        candidate_profile.get("experience", {}) or {}
+    ).get(
+        "years",
+        0
     )
 
     experience_score = calculate_experience_score(
@@ -89,13 +117,13 @@ def screen_resume(resume, job_profile):
     )
 
     required_result = calculate_skill_match(
-        job_profile["required_skills"],
-        candidate_profile["skills"]
+        job_profile.get("required_skills", []),
+        candidate_profile.get("skills", [])
     )
 
     preferred_result = calculate_preferred_skill_match(
-        job_profile["preferred_skills"],
-        candidate_profile["skills"]
+        job_profile.get("preferred_skills", []),
+        candidate_profile.get("skills", [])
     )
 #
 #    evidence_result = evaluate_requirement_evidence(
@@ -116,8 +144,8 @@ def screen_resume(resume, job_profile):
     )
 
     education_score = calculate_education_score(
-        job_profile["education"],
-        candidate_profile["education"]
+        job_profile.get("education", []),
+        candidate_profile.get("education", [])
     )
 
     overall_score = calculate_overall_score(

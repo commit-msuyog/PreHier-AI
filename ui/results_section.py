@@ -1,223 +1,139 @@
 import streamlit as st
 
+from ui.components import chip_row, empty_state, render_badge, score_row, section_header
 
-def show_candidate_profiles(candidate_profiles):
 
-    if not candidate_profiles:
+def _render_skills_block(title, matched, missing, matched_label="Matched", missing_label="Missing"):
+    st.markdown(f"**{title}**")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.caption(matched_label)
+        if matched:
+            chip_row(matched, variant="success")
+        else:
+            st.caption("None matched.")
+    with col2:
+        st.caption(missing_label)
+        if missing:
+            chip_row(missing, variant="danger")
+        else:
+            st.caption("None missing.")
+
+
+def _render_evidence(evidence_result):
+    st.markdown("#### Requirement Evidence")
+
+    requirements = evidence_result.get("requirements") if isinstance(evidence_result, dict) else None
+
+    if not requirements:
+        st.caption("No requirement evidence available for this candidate.")
         return
+
+    for requirement in requirements:
+        skill = requirement.get("skill", "")
+        level = requirement.get("evidence_level", "none")
+        evidence = requirement.get("evidence", "")
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**{skill}**")
+        with col2:
+            render_badge(level)
+        if evidence:
+            st.caption(evidence)
+        st.markdown("<div style='margin-bottom:0.4rem'></div>", unsafe_allow_html=True)
+
+
+def _render_projects(project_result):
+    st.markdown("#### Project Relevance")
+
+    projects = project_result.get("projects") if isinstance(project_result, dict) else None
+
+    if not projects:
+        st.caption("No project relevance information available for this candidate.")
+        return
+
+    overall = project_result.get("overall_relevance", "none")
+    st.write("Overall relevance:")
+    render_badge(overall)
+
+    for project in projects:
+        title = project.get("title", "Unnamed Project")
+        relevance = project.get("relevance", "none")
+        reason = project.get("reason", "")
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**{title}**")
+        with col2:
+            render_badge(relevance)
+        if reason:
+            st.caption(reason)
+        st.markdown("<div style='margin-bottom:0.4rem'></div>", unsafe_allow_html=True)
+
+
+def _render_candidate_result(name, result):
+    st.markdown(f"### {name}")
+
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.metric("Overall Match", f"{result.get('overall_score', 0)}%")
+
+    with col2:
+        score_row("Required Skills", result.get("required_skills", {}).get("score", 0))
+        score_row("Preferred Skills", result.get("preferred_skills", {}).get("score", 0))
+        score_row("Experience", result.get("experience_score", 0))
+        score_row("Education", result.get("education_score", 0))
+        score_row("Project Relevance", result.get("project_relevance_score", 0))
+
+    with st.expander("View full skill match, evidence & project relevance"):
+        required = result.get("required_skills", {})
+        _render_skills_block(
+            "Required Skills",
+            required.get("matched_skills", []),
+            required.get("missing_skills", []),
+        )
+
+        preferred = result.get("preferred_skills", {})
+        _render_skills_block(
+            "Preferred Skills",
+            preferred.get("matched", []),
+            preferred.get("missing", []),
+        )
+
+        st.divider()
+        _render_evidence(result.get("evidence", {}))
+
+        st.divider()
+        _render_projects(result.get("projects", {}))
 
     st.divider()
 
-    st.header("👥 Candidate Profiles")
 
-    for candidate_name, candidate_profile in candidate_profiles.items():
+def render():
+    section_header(
+        "Screening Results",
+        subtitle="Detailed, explainable scoring for every candidate screened against the job profile.",
+        eyebrow="Step 3",
+    )
 
-        with st.expander(
-            f"👤 {candidate_name}"
-        ):
-            st.json(candidate_profile)
-
-
-def show_screening_results(match_results):
+    match_results = st.session_state.match_results
 
     if not match_results:
+        empty_state(
+            "No screening results yet",
+            "Analyze candidates on the Candidates page to see detailed "
+            "scoring here.",
+            icon="📊",
+        )
         return
 
-    st.divider()
-
-    st.header("📊 Screening Results")
-
-    for candidate_name, result in match_results.items():
-
-        st.subheader(
-            f"📄 {candidate_name}"
-        )
-
-        st.metric(
-            "Overall Match Score",
-            f"{result['overall_score']}%"
-        )
-
-        st.write("### Score Breakdown")
-
-        st.write(
-            f"Required Skills: "
-            f"**{result['required_skills']['score']}%**"
-        )
-
-        st.write(
-            f"Preferred Skills: "
-            f"**{result['preferred_skills']['score']}%**"
-        )
-
-        st.write(
-            f"Experience: "
-            f"**{result['experience_score']}%**"
-        )
-
-        st.write(
-            f"Education: "
-            f"**{result['education_score']}%**"
-        )
-
-        st.write(
-            f"Project Relevance: "
-            f"**{result['project_relevance_score']}%**"
-        )
-
-        st.write("### 🎯 Skill Screening")
-
-        required_result = result["required_skills"]
-
-        st.write(
-            "**Matched Required Skills**"
-        )
-
-        if required_result["matched_skills"]:
-            st.write(
-                required_result["matched_skills"]
-            )
-        else:
-            st.write(
-                "No required skills matched."
-            )
-
-        st.write(
-            "**Missing Required Skills**"
-        )
-
-        if required_result["missing_skills"]:
-            st.write(
-                required_result["missing_skills"]
-            )
-        else:
-            st.write(
-                "No required skills are missing."
-            )
-
-        preferred_result = result["preferred_skills"]
-
-        st.write(
-            "**Matched Preferred Skills**"
-        )
-
-        if preferred_result["matched"]:
-            st.write(
-                preferred_result["matched"]
-            )
-        else:
-            st.write(
-                "No preferred skills matched."
-            )
-
-        st.write(
-            "**Missing Preferred Skills**"
-        )
-
-        if preferred_result["missing"]:
-            st.write(
-                preferred_result["missing"]
-            )
-        else:
-            st.write(
-                "No preferred skills are missing."
-            )
-
-        st.write("### 🧠 Requirement Evidence")
-
-        evidence_result = result["evidence"]
-
-        if "requirements" in evidence_result:
-
-            for requirement in evidence_result["requirements"]:
-
-                skill = requirement.get(
-                    "skill",
-                    ""
-                )
-
-                level = requirement.get(
-                    "evidence_level",
-                    "none"
-                )
-
-                evidence = requirement.get(
-                    "evidence",
-                    ""
-                )
-
-                st.write(
-                    f"**{skill} — "
-                    f"{level.upper()}**"
-                )
-
-                if evidence:
-                    st.caption(
-                        f"Evidence: {evidence}"
-                    )
-                else:
-                    st.caption(
-                        "No evidence found."
-                    )
-
-        else:
-            st.warning(
-                "Could not evaluate candidate evidence."
-            )
-
-        st.write("### 📁 Project Relevance")
-
-        project_result = result["projects"]
-
-        if "projects" in project_result:
-
-            st.write(
-                f"**Overall Project Relevance: "
-                f"{project_result.get(
-                    'overall_relevance',
-                    'unknown'
-                ).upper()}**"
-            )
-
-            for project in project_result["projects"]:
-
-                title = project.get(
-                    "title",
-                    "Unnamed Project"
-                )
-
-                relevance = project.get(
-                    "relevance",
-                    "none"
-                )
-
-                reason = project.get(
-                    "reason",
-                    ""
-                )
-
-                st.write(
-                    f"**{title} — "
-                    f"{relevance.upper()}**"
-                )
-
-                if reason:
-                    st.caption(
-                        f"Reason: {reason}"
-                    )
-
-        else:
-            st.warning(
-                "Could not evaluate project relevance."
-            )
-
-
-def show_results(candidate_profiles, match_results):
-
-    show_candidate_profiles(
-        candidate_profiles
+    # Show strongest matches first.
+    ordered = sorted(
+        match_results.items(),
+        key=lambda item: item[1].get("overall_score", 0),
+        reverse=True,
     )
 
-    show_screening_results(
-        match_results
-    )
+    for name, result in ordered:
+        _render_candidate_result(name, result)
