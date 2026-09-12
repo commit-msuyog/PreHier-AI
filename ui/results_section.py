@@ -114,7 +114,6 @@ def render():
     section_header(
         "Screening Results",
         subtitle="Detailed, explainable scoring for every candidate screened against the job profile.",
-        eyebrow="Step 3",
     )
 
     match_results = st.session_state.match_results

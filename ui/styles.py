@@ -1,12 +1,5 @@
-"""
-PreHier design system.
-
-A small, restrained set of CSS custom properties and component classes
-that give the Streamlit app a premium, classic "enterprise HR SaaS" look
-without fighting Streamlit's internals or depending on fragile DOM
-selectors any more than necessary.
-
-`inject_css()` is called once from prehier.py before any page renders.
+""""" 
+inject_css() is called once from prehier.py before any page renders.
 """
 
 import streamlit as st
@@ -65,14 +58,15 @@ h1, h2, h3 {{
 }}
 
 /* ---- Sidebar brand ----------------------------------------------------- */
+
 .ph-brand {{
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.25rem 0 1rem 0;
-    margin-bottom: 0.25rem;
-    border-bottom: 1px solid var(--ph-border);
+    gap: 0.8rem;
+    padding: 0.25rem 0rem 0;
+    margin-bottom: 0rem;
 }}
+
 .ph-brand-mark {{
     width: 34px;
     height: 34px;
@@ -81,44 +75,25 @@ h1, h2, h3 {{
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #FFFFFF;
     font-weight: 700;
     font-size: 0.95rem;
     flex-shrink: 0;
 }}
+
 .ph-brand-text .ph-brand-title {{
     font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--ph-navy);
+    font-size: 2.05rem;
+    color: #FFFFFF;
     line-height: 1.1;
 }}
+
 .ph-brand-text .ph-brand-subtitle {{
     font-size: 0.72rem;
     color: var(--ph-slate);
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }}
-
-.ph-status-list {{
-    font-size: 0.85rem;
-    color: var(--ph-slate);
-    padding-top: 0.4rem;
-}}
-.ph-status-row {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.15rem 0;
-}}
-.ph-status-dot {{
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 6px;
-}}
-.ph-status-dot.on {{ background: var(--ph-success); }}
-.ph-status-dot.off {{ background: #C7CDD8; }}
 
 /* ---- Section header ----------------------------------------------------- */
 .ph-section-header {{
@@ -230,6 +205,27 @@ h1, h2, h3 {{
 .ph-score-row .ph-score-value {{
     font-weight: 700;
     color: var(--ph-navy);
+}}
+
+/* About Section */
+
+.ph-sidebar-developer {{
+    padding-top: 2.5rem;
+    text-align: left;
+}}
+
+.ph-sidebar-developer-name {{
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: #EAF2FF !important;
+    margin-bottom: 0.3rem;
+}}
+
+.ph-sidebar-developer-quote {{
+    font-size: 0.72rem;
+    font-style: italic;
+    color: #526173 !important;
+    line-height: 1.4;
 }}
 
 /* ---- Rank pill ----------------------------------------------------------- */

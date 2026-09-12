@@ -58,7 +58,6 @@ def render():
     section_header(
         "Job Setup",
         subtitle="Paste the job description to extract the requirements PreHier will screen candidates against.",
-        eyebrow="Step 1",
     )
 
     job_description = st.text_area(

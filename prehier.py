@@ -1,26 +1,8 @@
-"""
-PreHier — Professional Pre-Hire Screening Platform.
-
-This is the Streamlit entry point. It is responsible for:
-1. Page configuration (must run first, before any other st.* call).
-2. Injecting the shared design system (CSS).
-3. Initializing st.session_state defaults, once, for the whole app.
-4. Declaring the multipage navigation and rendering the sidebar brand.
-
-Each page is a plain Python function (`render()`) that lives in the
-`ui/` package and reads whatever it needs from `st.session_state`. This
-keeps `st.Page` definitions here in one place while the actual page
-content stays next to the feature it belongs to.
-
-Run locally with:
-    streamlit run prehier.py
-"""
-
 import streamlit as st
 
 from ui import comparison_section, dashboard, export_section, job_section
 from ui import ranking_section, resume_section, results_section, shortlist_section
-from ui.sidebar import render_brand, render_status
+from ui.sidebar import render_brand, render_status,render_developer
 from ui.state import init_session_state
 from ui.styles import inject_css
 
@@ -47,11 +29,11 @@ pages = [
     st.Page(comparison_section.render, title="Comparison", icon=":material/compare_arrows:", url_path="comparison"),
     st.Page(export_section.render, title="Export", icon=":material/download:", url_path="export"),
 ]
-
 current_page = st.navigation(pages, position="sidebar")
 
 with st.sidebar:
     st.divider()
     render_status()
+    render_developer()
 
 current_page.run()

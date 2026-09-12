@@ -57,7 +57,6 @@ def render():
     section_header(
         "Candidates",
         subtitle="Upload candidate resumes as PDF files, then run AI analysis against the job profile.",
-        eyebrow="Step 2",
     )
 
     if not has_job_profile():

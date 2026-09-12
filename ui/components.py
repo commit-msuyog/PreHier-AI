@@ -10,21 +10,26 @@ import html
 import streamlit as st
 
 
-def section_header(title, subtitle=None, eyebrow=None):
-    """Render a consistent page/section header."""
-    eyebrow_html = f'<div class="ph-eyebrow">{html.escape(eyebrow)}</div>' if eyebrow else ""
-    subtitle_html = f'<div class="ph-subtitle">{html.escape(subtitle)}</div>' if subtitle else ""
+def section_header(
+    title,
+    subtitle=None,
+    eyebrow=None,
+):
+    """Render a consistent page or section header."""
 
-    st.markdown(
-        f"""
-        <div class="ph-section-header">
-            {eyebrow_html}
-            <div class="ph-title">{html.escape(title)}</div>
-            {subtitle_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
+    if eyebrow:
+        st.caption(
+            str(eyebrow).upper()
+        )
+
+    st.title(
+        str(title)
     )
+
+    if subtitle:
+        st.caption(
+            str(subtitle)
+        )
 
 
 def chip_row(items, variant="muted"):
