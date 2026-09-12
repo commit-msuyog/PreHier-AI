@@ -26,7 +26,6 @@ PreHier is a Streamlit application that helps recruiters turn an unstructured hi
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Usage Walkthrough](#usage-walkthrough)
-- [Deployment](#deployment)
 - [Error Handling & Reliability](#error-handling--reliability)
 - [Security](#security)
 - [Responsible AI & Privacy](#responsible-ai--privacy)
