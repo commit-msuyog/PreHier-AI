@@ -8,7 +8,7 @@ from ui.styles import inject_css
 
 st.set_page_config(
     page_title="PreHier",
-    page_icon="🎯",
+    page_icon= "assets/prehier-logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )

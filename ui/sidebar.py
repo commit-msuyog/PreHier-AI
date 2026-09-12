@@ -10,7 +10,7 @@ def render_brand():
         <div class="ph-brand">
             <div class="ph-brand-text">
                 <div class="ph-brand-title">PreHier</div>
-                <div class="ph-brand-subtitle">Pre-Hire Screening</div>
+                <div class="ph-brand-subtitle">AI-Powered Hiring</div>
             </div>
         </div>
         """,

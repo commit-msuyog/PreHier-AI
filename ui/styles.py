@@ -67,20 +67,6 @@ h1, h2, h3 {{
     margin-bottom: 0rem;
 }}
 
-.ph-brand-mark {{
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, var(--ph-navy), var(--ph-accent));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #FFFFFF;
-    font-weight: 700;
-    font-size: 0.95rem;
-    flex-shrink: 0;
-}}
-
 .ph-brand-text .ph-brand-title {{
     font-weight: 700;
     font-size: 2.05rem;
