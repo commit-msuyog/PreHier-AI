@@ -2,7 +2,7 @@ import streamlit as st
 
 from ui import comparison_section, dashboard, export_section, job_section
 from ui import ranking_section, resume_section, results_section, shortlist_section
-from ui.sidebar import render_brand, render_status,render_developer
+from ui.sidebar import render_brand, render_status, render_developer
 from ui.state import init_session_state
 from ui.styles import inject_css
 
