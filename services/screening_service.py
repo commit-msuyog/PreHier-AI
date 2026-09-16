@@ -1,4 +1,6 @@
+from docx import Document
 from pypdf import PdfReader
+
 
 from ai.screening_analyzer import analyze_screening
 
@@ -19,37 +21,52 @@ from screening.scoring_engine import (
 
 
 def extract_resume_text(resume):
-    """Extract text from an uploaded PDF resume.
+    """Extract text from a PDF or DOCX resume."""
 
-    Raises ValueError with a recruiter-friendly message (instead of
-    letting pypdf's exception or an empty document propagate) so the
-    calling UI can show a clean message per-resume without crashing the
-    whole analysis batch.
-    """
+    file_name = getattr(resume, "name", "").lower()
 
-    try:
-        reader = PdfReader(resume)
-    except Exception as error:
-        raise ValueError(
-            "Unable to open this PDF. Please check that the file is a "
-            "valid, unencrypted PDF."
-        ) from error
-
-    resume_text = ""
-
-    for page in reader.pages:
+    if file_name.endswith(".pdf"):
         try:
-            text = page.extract_text()
-        except Exception:
-            text = None
+            reader = PdfReader(resume)
+        except Exception as error:
+            raise ValueError(
+                "Unable to open this PDF. Please check that the file is "
+                "valid and readable."
+            ) from error
 
-        if text:
-            resume_text += text + "\n"
+        resume_text = ""
+
+        for page in reader.pages:
+            try:
+                text = page.extract_text()
+            except Exception:
+                text = None
+
+            if text:
+                resume_text += text + "\n"
+
+    elif file_name.endswith(".docx"):
+        try:
+            document = Document(resume)
+            resume_text = "\n".join(
+                paragraph.text
+                for paragraph in document.paragraphs
+                if paragraph.text.strip()
+            )
+        except Exception as error:
+            raise ValueError(
+                "Unable to open this DOCX resume. Please check that the "
+                "file is valid and readable."
+            ) from error
+
+    else:
+        raise ValueError(
+            "Unsupported resume format. Please upload a PDF or DOCX file."
+        )
 
     if not resume_text.strip():
         raise ValueError(
-            "Unable to analyze this resume. Please check that the PDF "
-            "contains readable (non-scanned) text."
+            "Unable to extract readable text from this resume."
         )
 
     return resume_text

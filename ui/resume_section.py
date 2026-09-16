@@ -56,7 +56,7 @@ def _render_candidate_card(name, profile):
 def render():
     section_header(
         "Candidates",
-        subtitle="Upload candidate resumes as PDF files, then run AI analysis against the job profile.",
+        subtitle="Upload candidate resumes as PDF or DOCX files, then run AI analysis against the job profile.",
     )
 
     if not has_job_profile():
@@ -67,9 +67,9 @@ def render():
 
     resumes = st.file_uploader(
         "Upload candidate resumes",
-        type=["pdf"],
+        type=["pdf", "docx"],
         accept_multiple_files=True,
-        help="Upload one or more candidate resumes in PDF format.",
+        help="Upload one or more candidate resumes in PDF or DOCX format.",
     )
 
     if resumes:
@@ -151,7 +151,8 @@ def render():
     else:
         empty_state(
             "No candidates analyzed yet",
-            "Upload one or more PDF resumes above and click \"Analyze Candidates\" "
+            "Upload one or more PDF or DOCX resumes above and click "
+            "\"Analyze Candidates\" "
             "to generate structured candidate profiles.",
             icon="📄",
         )
