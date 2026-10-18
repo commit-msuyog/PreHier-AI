@@ -1,3 +1,9 @@
+import os
+from io import BytesIO
+
+import pymupdf
+import pytesseract
+from PIL import Image, ImageEnhance, ImageFilter
 from docx import Document
 from pypdf import PdfReader
 
@@ -20,21 +26,29 @@ from screening.scoring_engine import (
 #from screening.project_matcher import evaluate_project_relevance
 
 
+
+
+
 def extract_resume_text(resume):
-    """Extract text from a PDF or DOCX resume."""
+    """Extract text from PDF or DOCX, using OCR for scanned PDFs."""
 
     file_name = getattr(resume, "name", "").lower()
 
     if file_name.endswith(".pdf"):
         try:
-            reader = PdfReader(resume)
+            resume.seek(0)
+            pdf_bytes = resume.read()
+            resume.seek(0)
+
+            reader = PdfReader(BytesIO(pdf_bytes))
+
         except Exception as error:
             raise ValueError(
-                "Unable to open this PDF. Please check that the file is "
-                "valid and readable."
+                "Unable to open this PDF. Please check that the file "
+                "is valid and readable."
             ) from error
 
-        resume_text = ""
+        extracted_pages = []
 
         for page in reader.pages:
             try:
@@ -42,21 +56,76 @@ def extract_resume_text(resume):
             except Exception:
                 text = None
 
-            if text:
-                resume_text += text + "\n"
+            if text and text.strip():
+                extracted_pages.append(text)
+
+        resume_text = "\n".join(extracted_pages)
+
+        # OCR fallback when normal PDF extraction finds no text.
+        if not resume_text.strip():
+            try:
+                tesseract_path = os.getenv(
+                    "TESSERACT_CMD",
+                    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                )
+
+                if not os.path.isfile(tesseract_path):
+                    raise FileNotFoundError(
+                        "Tesseract executable was not found. "
+                        "Set TESSERACT_CMD to its actual path."
+                    )
+
+                pytesseract.pytesseract.tesseract_cmd = (
+                    tesseract_path
+                )
+
+                ocr_pages = []
+
+                with pymupdf.open(
+                    stream=pdf_bytes,
+                    filetype="pdf",
+                ) as document:
+                    for page in document:
+                        pix = page.get_pixmap(
+                            matrix=pymupdf.Matrix(300 / 72, 300 / 72),
+                            alpha=False,
+                        )
+
+                        image = Image.open(
+                            BytesIO(pix.tobytes("png"))
+                        )
+
+                        text = pytesseract.image_to_string(
+                            image,
+                            lang="eng",
+                            config="--psm 3",
+                        )
+
+                        if text and text.strip():
+                            ocr_pages.append(text)
+
+                resume_text = "\n".join(ocr_pages)
+
+            except Exception as error:
+                raise ValueError(
+                    f"OCR failed ({type(error).__name__}): {error}"
+                ) from error
 
     elif file_name.endswith(".docx"):
         try:
+            resume.seek(0)
             document = Document(resume)
+
             resume_text = "\n".join(
                 paragraph.text
                 for paragraph in document.paragraphs
                 if paragraph.text.strip()
             )
+
         except Exception as error:
             raise ValueError(
-                "Unable to open this DOCX resume. Please check that the "
-                "file is valid and readable."
+                "Unable to open this DOCX resume. Please check that "
+                "the file is valid and readable."
             ) from error
 
     else:
@@ -66,10 +135,12 @@ def extract_resume_text(resume):
 
     if not resume_text.strip():
         raise ValueError(
-            "Unable to extract readable text from this resume."
+            "Unable to extract readable text from this resume. "
+            "If it is scanned, check the image quality and OCR setup."
         )
 
     return resume_text
+
 
 
 def screen_resume(resume, job_profile):
@@ -110,7 +181,7 @@ def screen_resume(resume, job_profile):
             "projects": []
         }
     )
-
+    
     # The AI is instructed to always return every field, but defensively
     # fall back to safe defaults so a partially-shaped response never
     # crashes the app with a KeyError.
