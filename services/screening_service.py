@@ -1,6 +1,7 @@
 import os
 from io import BytesIO
 
+import shutil
 import pymupdf
 import pytesseract
 from PIL import Image, ImageEnhance, ImageFilter
@@ -64,10 +65,11 @@ def extract_resume_text(resume):
         # OCR fallback when normal PDF extraction finds no text.
         if not resume_text.strip():
             try:
-                tesseract_path = os.getenv(
-                    "TESSERACT_CMD",
-                    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-                )
+                tesseract_path = (
+                os.getenv("TESSERACT_CMD")
+                or shutil.which("tesseract")
+                or r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+            )
 
                 if not os.path.isfile(tesseract_path):
                     raise FileNotFoundError(
