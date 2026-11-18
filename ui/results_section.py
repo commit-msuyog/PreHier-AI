@@ -3,21 +3,55 @@ import streamlit as st
 from ui.components import chip_row, empty_state, render_badge, score_row, section_header
 
 
-def _render_skills_block(title, matched, missing, matched_label="Matched", missing_label="Missing"):
+
+def _render_skills_block(title, skill_result, preferred=False):
     st.markdown(f"**{title}**")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.caption(matched_label)
-        if matched:
-            chip_row(matched, variant="success")
-        else:
-            st.caption("None matched.")
-    with col2:
-        st.caption(missing_label)
-        if missing:
-            chip_row(missing, variant="danger")
-        else:
-            st.caption("None missing.")
+
+    exact = skill_result.get(
+        "exact_matches",
+        skill_result.get("matched_skills", skill_result.get("matched", []))
+    )
+
+    related = skill_result.get("related_matches", [])
+    semantic = skill_result.get("semantic_matches", [])
+
+    missing = skill_result.get(
+        "missing_skills",
+        skill_result.get("missing", [])
+    )
+
+    if exact:
+        st.caption("Exact Matches")
+        chip_row(exact, variant="success")
+
+    if related:
+        st.caption("Related Technology Matches")
+        for match in related:
+            st.write(
+                f"• **{match['required_skill']}** "
+                f"← {match['matched_skill']} "
+                f"({match['credit'] * 100:.0f}% credit)"
+            )
+
+    if semantic:
+        st.caption("Semantic Matches")
+        for match in semantic:
+            st.write(
+                f"• **{match['required_skill']}** "
+                f"← {match['matched_skill']} "
+                f"(similarity: {match['similarity']})"
+            )
+
+    if missing:
+        st.caption("Missing Skills")
+        chip_row(missing, variant="danger")
+
+    if not exact and not related and not semantic:
+        st.caption("No matching skills found.")
+
+    if not missing:
+        st.caption("No missing skills.")
+
 
 
 def _render_evidence(evidence_result):
@@ -90,15 +124,14 @@ def _render_candidate_result(name, result):
         required = result.get("required_skills", {})
         _render_skills_block(
             "Required Skills",
-            required.get("matched_skills", []),
-            required.get("missing_skills", []),
+            required,
         )
 
         preferred = result.get("preferred_skills", {})
         _render_skills_block(
             "Preferred Skills",
-            preferred.get("matched", []),
-            preferred.get("missing", []),
+            preferred,
+            preferred=True,
         )
 
         st.divider()
