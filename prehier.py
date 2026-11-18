@@ -2,13 +2,13 @@ import streamlit as st
 
 from ui import comparison_section, dashboard, export_section, job_section
 from ui import ranking_section, resume_section, results_section, shortlist_section
-from ui.sidebar import render_brand, render_status, render_developer
+from ui.sidebar import render_status, render_developer
 from ui.state import init_session_state
 from ui.styles import inject_css
 
 st.set_page_config(
     page_title="PreHier",
-    page_icon="assets/prehier-logo.png",
+    page_icon="assets/prehier-favicon.svg",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -16,8 +16,10 @@ st.set_page_config(
 inject_css()
 init_session_state()
 
-with st.sidebar:
-    render_brand()
+st.logo("assets/prehier-logo.svg", size="large")
+
+# with st.sidebar:
+#     render_brand()
 
 pages = [
     st.Page(dashboard.render, title="Dashboard", icon=":material/dashboard:", url_path="dashboard", default=True),

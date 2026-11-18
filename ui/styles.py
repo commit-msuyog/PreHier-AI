@@ -58,6 +58,13 @@ section[data-testid="stSidebar"] hr { color: #CFE3DF; border-color: rgba(255,255
 [data-testid="stSidebarNavLink"]:hover { background: rgba(255,255,255,.07); }
 [data-testid="stSidebarNavLink"][aria-current="page"] { background: rgba(232,163,23,.16); box-shadow: inset 3px 0 0 var(--ph-amber); }
 [data-testid="stSidebarNavLink"][aria-current="page"] span { color: #FFFFFF !important; font-weight: 600; }
+
+[data-testid="stSidebarHeader"] { padding: 1.4rem 1rem 1rem; }
+[data-testid="stSidebarHeader"] img { height: 2.8rem; width: auto; }
+[data-testid="stSidebarNav"] { padding-bottom: 0; margin-bottom: 0; }
+[data-testid="stSidebarUserContent"] { padding-top: 0 !important; }
+[data-testid="stSidebarUserContent"] hr { margin: 0.6rem 0; }
+
 .ph-brand { display: flex; align-items: flex-end; gap: .7rem; padding: .3rem 0 .2rem; }
 .ph-mark { display: flex; align-items: flex-end; gap: 3px; height: 30px; }
 .ph-mark i { display: block; width: 7px; border-radius: 2px; background: #7FC9BD; }
