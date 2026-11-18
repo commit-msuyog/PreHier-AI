@@ -8,7 +8,7 @@ from ui.styles import inject_css
 
 st.set_page_config(
     page_title="PreHier",
-    page_icon= "assets/prehier-logo.png",
+    page_icon="assets/prehier-logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -29,6 +29,8 @@ pages = [
     st.Page(comparison_section.render, title="Comparison", icon=":material/compare_arrows:", url_path="comparison"),
     st.Page(export_section.render, title="Export", icon=":material/download:", url_path="export"),
 ]
+# Registry so pages can offer in-app shortcuts via ui.components.go()
+st.session_state["_pages"] = {p.url_path: p for p in pages}
 current_page = st.navigation(pages, position="sidebar")
 
 with st.sidebar:
